@@ -35,24 +35,12 @@ void ADS1256_Init(ADS1256 *ads1256) {
     ads1256->select(FALSE);
 }
 
-void ADS1256_Wait(ADS1256 *ads1256) {
-    ads1256->wait();
-}
-
-void ADS1256_Select(ADS1256 *ads1256, bool_t e) {
-    ads1256->select(e);
-}
-
 int32_t ADS1256_Read24i(ADS1256 *ads1256) {
     uint8_t data[3] = {0, 0, 0};
     ads1256->swap(data, 3);
     return (((uint32_t) data[0] << 24)
             | ((uint32_t) data[1] << 16)
             | ((uint32_t) data[2] << 8));
-}
-
-double ADS1256_toDouble(int32_t v) {
-    return (double) v / 0x7FFFFF00;
 }
 
 void ADS1256_WAKEUP(ADS1256 *ads1256) {

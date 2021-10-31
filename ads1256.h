@@ -103,70 +103,156 @@ extern "C" {
 #define ADS1256_IO_DIR0         0x10
 #define ADS1256_IO_DI0          0x0F
 
+/// 一个ADS1256设备
 typedef struct {
-    /// Do swap byte with 3 line SPI.
+    /// 以3线SPI与ADS1256通信，同时发送和接受
     ///
-    /// \param buffer   Buffer
-    /// \param len      Length
+    /// \param buffer   缓冲
+    /// \param len      字节数
     void (*swap)(uint8_t *buffer, size_t len);
 
-    /// Wait DRDY pull low.
+    /// 等待DRDY线拉低
     void (*wait)(void);
 
-    /// Select chip (Disable interrupt / Enable interrupt).
-    /// (Configure SEL/DIR)
+    /// 更改片选线 (中断 禁用/启用).
+    /// (配置引脚 功能/方向)
+    /// \param e    是否选中
     void (*select)(bool_t e);
 } ADS1256;
 
+/// 配置ADS1256寄存器为特定值
+/// 开启自动校准
+/// 测量 A0 - COM
+/// 采样率1K
+///
+/// \param ads1256  设备
 void ADS1256_Init(ADS1256 *ads1256);
 
-void ADS1256_Wait(ADS1256 *ads1256);
-
-void ADS1256_Select(ADS1256 *ads1256, bool_t e);
-
+/// 从设备中读取 24 位数据
+/// 读取的结果存放为 0xAABBCC00
+/// 可以除以0x7FFFFF00并乘以量程得到实际值
+///
+/// \param ads1256  设备
 int32_t ADS1256_Read24i(ADS1256 *ads1256);
 
-double ADS1256_toDouble(int32_t v);
-
+/// 发送 WAKEUP 指令
+///
+/// \param ads1256  设备
 void ADS1256_WAKEUP(ADS1256 *ads1256);
 
+/// 发送 RDATA 指令
+///
+/// \param ads1256  设备
 void ADS1256_RDATA(ADS1256 *ads1256);
 
+/// 发送 RDATAC 指令
+///
+/// \param ads1256  设备
 void ADS1256_RDATAC(ADS1256 *ads1256);
 
+/// 发送 SDATAC 指令
+///
+/// \param ads1256  设备
 void ADS1256_SDATAC(ADS1256 *ads1256);
 
+/// 发送 RREG 指令
+///
+/// \param ads1256  设备
+/// \param reg      寄存器首地址
+/// \param count    寄存器数
 void ADS1256_RREG(ADS1256 *ads1256, uint8_t reg, uint8_t count);
 
+/// 发送 WREG 指令
+///
+/// \param ads1256 设备
+/// \param reg      寄存器首地址
+/// \param count    寄存器数
 void ADS1256_WREG(ADS1256 *ads1256, uint8_t reg, uint8_t count);
 
+/// 发送 SELFCAL 指令
+///
+/// \param ads1256  设备
 void ADS1256_SELFCAL(ADS1256 *ads1256);
 
+/// 发送 SELFOCAL 指令
+///
+/// \param ads1256  设备
 void ADS1256_SELFOCAL(ADS1256 *ads1256);
 
+/// 发送 SELFGCAL 指令
+///
+/// \param ads1256  设备
 void ADS1256_SELFGCAL(ADS1256 *ads1256);
 
+/// 发送 SYSOCAL 指令
+///
+/// \param ads1256  设备
 void ADS1256_SYSOCAL(ADS1256 *ads1256);
 
+/// 发送 SYSGCAL 指令
+///
+/// \param ads1256  设备
 void ADS1256_SYSGCAL(ADS1256 *ads1256);
 
+/// 发送 SYNC 指令
+///
+/// \param ads1256  设备
 void ADS1256_SYNC(ADS1256 *ads1256);
 
+/// 发送 STANDBY 指令
+///
+/// \param ads1256  设备
 void ADS1256_STANDBY(ADS1256 *ads1256);
 
+/// 发送 RESET 指令
+///
+/// \param ads1256  设备
 void ADS1256_RESET(ADS1256 *ads1256);
 
+/// 等待 DRDY 后启用片选并读取
+/// 这通常与 RDATAC 结合使用
+///
+/// \param ads1256  设备
+/// \return 读取的 0xAABBCC00 结果
 int32_t ADS1256_Wait_CS_Read(ADS1256 *ads1256);
 
+/// 执行一次指定MUX和ADCON的单次转换，其他寄存器使用历史值
+///
+/// \param ads1256  设备
+/// \param MUX      MUX 寄存器值
+/// \param ADCON    ADCON 寄存器值
+/// \return 读取的 0xAABBCC00 结果
 int32_t ADS1256_Shot_MUX_ADCON(ADS1256 *ads1256, uint8_t MUX, uint8_t ADCON);
 
+/// 执行一次指定MUX的单次转换，其他寄存器使用历史值
+///
+/// \param ads1256  设备
+/// \param MUX      MUX 寄存器值
+/// \return 读取的 0xAABBCC00 结果
 int32_t ADS1256_Shot_MUX(ADS1256 *ads1256, uint8_t MUX);
 
+/// 执行一次单次转换，寄存器使用历史值
+///
+/// \param ads1256  设备
+/// \return 读取的 0xAABBCC00 结果
 int32_t ADS1256_Shot(ADS1256 *ads1256);
 
+/// 执行一次指定MUX和ADCON的多通道依次转换，其他寄存器使用历史值
+///
+/// \param ads1256  设备
+/// \param MUXs     MUX 值数组
+/// \param ADCONs   ADCON 值数组
+/// \param results  接受 0xAABBCC00 结果的数组
+/// \param count    数量
 void ADS1256_Mul_MUX_ADCON(ADS1256 *ads1256, const uint8_t *MUXs, const uint8_t *ADCONs,
                            int32_t *results, size_t count);
 
+/// 执行一次指定MUX的多通道依次转换，其他寄存器使用历史值
+///
+/// \param ads1256  设备
+/// \param MUXs     MUX 值数组
+/// \param results  接受 0xAABBCC00 结果的数组
+/// \param count    数量
 void ADS1256_Mul_MUX(ADS1256 *ads1256, const uint8_t *MUXs, int32_t *results, size_t count);
 
 #ifdef __cplusplus
